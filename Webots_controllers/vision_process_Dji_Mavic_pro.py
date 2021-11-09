@@ -68,8 +68,8 @@ class ImageConverter:
         gray_l, corner_l = self.aruco_detection(img_l)
         gray_r, corner_r = self.aruco_detection(img_r)
 
-        corner_l = self.better_point(corner_l)
-        corner_r = self.better_point(corner_r)
+        #corner_l = self.better_point(corner_l)
+        #corner_r = self.better_point(corner_r)
 
         # Draw circles on corners
         #final_l = self.draw_points(corner_l, gray_l)
