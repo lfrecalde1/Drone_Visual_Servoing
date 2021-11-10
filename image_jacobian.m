@@ -1,11 +1,10 @@
-function J = image_jacobian(camera_param, pixels,z)
+function J = image_jacobian(camera_param, pixels, z)
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
 fx = camera_param(1);
 fy = camera_param(2);
 u0 = camera_param(3);
 v0 = camera_param(4);
-
 
 % GET POINT UNDER CENTER OF IMAGE PLANE
 U_m = pixels;

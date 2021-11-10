@@ -49,55 +49,15 @@ obj_3d = Object_3d(obj, h, rotz, roty);
 uv_d = [-19.9765, -31.5547, 98.0235, -83.5547, 108.0235, 38.4453, -15.9765, 8.4453]';
 uv_d = uv_d*ones(1,length(t));
 
-
-%% PARAMETERS DEFINITION FOR OPTIMAL CONTROLLER
-
-%% Horizonte de prediccion
-N = 3;
-
-%% Generacion del vectro de control auxiliar
-ul0 = ones(1,N);
-um0 = ones(1,N);
-un0 = ones(1,N);
-w0 = ones(1,N);
-
-%% Generacion de las condicones del problema
-lb = [-0.5,-0.5,-1.0,-1.5]';
-ub = [ 0.5, 0.5, 1.0, 1.5]';
-LB=[];
-UB =[];
-for index=1:N
-    LB=[LB;lb];
-    UB=[UB;ub];
-end
-%% Parametros del optimizador
-options = optimset('Display','off',...
-                'TolFun', 1e-8,...
-                'MaxIter', 10000,...
-                'Algorithm', 'active-set',...
-                'FinDiffType', 'forward',...
-                'RelLineSrchBnd', [],...
-                'RelLineSrchBndDuration', 1,...
-                'TolConSQP', 1e-6);    
-control0 = [ul0;um0;un0;w0];
-
-%% CREATE NORMALIZED MATRICES Q, R
-Q = normalized_matrices_states(uv, uv_d, N, camera_parameters);
-R = normalized_matrices_control(control0, ub);
-
 %% OPTIMIZATION PARAMETERS FOR ESTIMATION OF FOCAL DISTANCE
 for k = 1:length(t)-N
     tic; 
     %% GENERATE VECTOR OF PIXELS ERRORS
-    Pe(:,k) = uv_d(:,k)-uv(:,k);
+    Pe(:,k) = uv_d-uv(:,k);
     
     %% CONTROL LAW F VISUAL SERVOING SYSTEM
-    control = visual_servoing_control(camera_parameters, L, uv(:,k), uv_d(:,k), h(:,k), z(:,k), rotz, roty);
+    control = visual_servoing_control(camera_parameters, L, uv(:,k), uv_d, h(:,k), z(:,k), rotz, roty);
     
-    %% Control Optimo
-    %f_obj1 = @(v) cost_pixels(camera_parameters, L, uv(:,k), h(:,k), obj(:,k), rotz, roty, v, ts, N, uv_d, k, Q, R);
-    
-    %qref_optimal = fmincon(f_obj1,control0,[],[],[],[],LB,UB,[],options);
     %% OBTAIN CONTROL VALUES OF THE VECTOR
     ul(k) = control(1);
     um(k) = control(2);
@@ -113,11 +73,11 @@ for k = 1:length(t)-N
     [uv(:,k+1), z(:,k+1), obj(:,k+1), flag(1,k+1)] = image_data(pixel_data, camera_parameters);
     obj_3d(:,k+1) = Object_3d(obj(:,k+1), h(:,k+1), rotz, roty);
     
-%     %% UPDATE ESTIMATION NEXT STATE
-%     f_ob = @(f) camera_model_cost(f, uv(:,k+1), obj(:,k+1));
-%     f0(:,k+1) = fmincon(f_ob,f0(:,k),[],[],[],[],LB,UB,[],options);
-%     camera_parameters = [f0(:,k+1); u0; v0];
-%     control0 = horizonte(qref_optimal);
+    %% UPDATE ESTIMATION NEXT STATE
+    f_ob = @(f) camera_model_cost(f, uv(:,k+1), obj(:,k+1));
+    f0(:,k+1) = fmincon(f_ob,f0(:,k),[],[],[],[],LB,UB,[],options);
+    camera_parameters = [f0(:,k+1); u0; v0];
+    
     while(toc<ts)
     end
     toc;

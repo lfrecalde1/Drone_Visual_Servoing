@@ -14,20 +14,12 @@ R = rotation_camera(h, rotz, roty);
 R_1 = [inv(R), zeros(3,3);...
        zeros(3,3), inv(R)];
 
-  
-%% Aux matrix that converts all velocities of the camera to mobile robot velocities
-aux = [1,0,0;...
-       0,1,0;...
-       0,0,0;...
-       0,0,0;...
-       0,0,0;...
-       0,0,1];
 
 %% Control error between desired pixels and real pixels
 he = pixels_d - pixels;
 
 %% Control law 
-J_total = J_img*R_1*aux*J_mobile;
+J_total = J_img*R_1*J_mobile;
 K1 = 1*eye(8);
 K2 = 20*eye(8);
 control = pinv(J_total)*(K2*tanh(inv(K2)*K1*he));
